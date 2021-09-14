@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.7.0/css/ol.css" type="text/css">
+    <style>
+      .map {
+        height: 800px;
+        width: 100%;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.7.0/build/ol.js"></script>
+    <title>OpenLayers example</title>
+  </head>
+  <body>
+    <h2>My Map</h2>
+    <div id="map" class="map"></div>
+    <script type="text/javascript">
+      var map =
+        new ol.Map({
+          target: 'map',
+          layers: [
+            new ol.layer.Tile({
+              source: new ol.source.OSM()
+            })
+          ],
+          view: new ol.View({
+            center: ol.proj.fromLonLat([13.4797039, 52.5050984]),
+            zoom: 15
+          })
+        });
+
+      marker =
+        new khtml.maplib.overlay.Marker({
+          position: new khtml.maplib.LatLng(52.5050984, 13.4797039),
+          icon: {
+            url: "http://maps.gstatic.com/intl/de_de/mapfiles/ms/micons/red-pushpin.png",
+            size: {width: 26, height: 32},
+            origin: {x: 0, y: 0},
+            anchor: {
+              x: "-10px",
+              y: "-32px"
+            }
+          },
+          shadow: {
+            url: "http://maps.gstatic.com/intl/de_de/mapfiles/ms/micons/pushpin_shadow.png",
+            size: {
+              width: "40px",
+              height: "32px"
+            },
+            origin: {x: 0, y: 0},
+            anchor: {x: 0, y: -32 }
+          },
+          draggable: true,
+          title: "moveable marker"
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Where is Cindy?</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
+
+  <!-- Make sure you put this AFTER Leaflet's CSS -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+
+  <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.19.0.min.js"></script>
+
+</head>
+<body>
+  <div id="mapid"></div>
+
+  <style>
+    #mapid { height: 800px; }
+  </style>
+
+  <script>
+    // PubNub
+    var pnChannel = "where-is-cindy-test";
+    var pubnub = new PubNub({
+      publishKey: "pub-c-9e005e61-141d-4a00-a3f9-c5c90ae0d686",
+      subscribeKey: "sub-c-6aedd952-15aa-11ec-9d3c-1ae560ca2970"
+    });
+
+    function pubnubDebug(payload) {
+      console.debug("pubnubDebug", payload);
+      updatePosition(payload.message);
+    }
+
+    pubnub.subscribe({channels: [pnChannel]});
+    pubnub.addListener({message: pubnubDebug});
+
+    // Maps
+    var map = L.map("mapid").setView([52.5050984, 13.4797039], 13);
+
+    L.tileLayer(
+      "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: "mapbox/streets-v11",
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: "pk.eyJ1IjoiZDJjbG9uIiwiYSI6ImNrdGtsZzV4NzFtdW4ydmpvZGNxamFjcTgifQ.UptWAKLgJmElEj6maC4bWQ"
+      }
+    ).addTo(map);
+
+    var marker = L.marker([52.5050984, 13.4797039]).addTo(map);
+
+    function updatePosition(position)
+    {
+      console.log("updatePosition", position);
+
+      var latitude = position.latitude;
+      var longitude = position.longitude;
+
+      marker.setLatLng([latitude, longitude]);
+      map.panTo([latitude, longitude]);
+    }
+  </script>
+
+
+</body>
+</html>
