@@ -73,7 +73,7 @@ App.Geo.getLocation = function() {
 }
 
 App.Geo.updatePositionFromCurrentPosition = function (position) {
-  App.Geo.PUBNUB_SUBSCRIBE_KEYupdatePosition(position.coords.latitude, position.coords.longitude);
+  App.Geo.updatePosition(position.coords.latitude, position.coords.longitude);
 }
 
 App.Geo.updatePosition = function(latitude, longitude) {

@@ -1,17 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
+
 body {
   color: #d2cbe4;
   background: #2f263c;
+
+  font-family: -apple-system,Helvetica Neue,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Open Sans,sans-serif;
 }
 
-#header {
+nav {
   background: #c83b50;
-  padding: 15px 0;
+  color: #2f263c;
+  padding: 1em 0 0.5em 0;
   font-weight: bold;
-  margin-bottom: 25px;
+  margin-bottom: 2em;
+  margin-top: 2px;
 }
+
+nav h1 {
+  margin: 0px;
+  padding-top: 0.2em;
+}
+
+nav .broadcast-check label {
+  font-size: 1.2em;
+  margin-left: 0.5em;
+  padding-top: 0.2em;
+}
+
 #map {
   background-color: gray;
   /* width: 100%; */
   width:25%;
   padding:25%;
+}
+
+/* Fonts */
+.font-happy {
+  font-family: 'Luckiest Guy', cursive;
+}
+
+/* Bootstrap components customization */
+.form-check-input {
+  background-color: white;
+  border-color: #2f263c;
+}
+
+.form-check-input:checked {
+  background-color: #2f263c;
+  border-color: #c83b50;
+}
+
+.form-switch .form-check-input {
+  width: 6em;
+  height: 2em;
+  border-radius: 2em;
 }
