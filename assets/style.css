@@ -32,6 +32,16 @@ nav .broadcast-check label {
   height:80vh;
 }
 
+footer {
+  height: 10vh;
+}
+
+footer img {
+  height: 100%;
+  border-radius: 50%;
+  border: 10px solid #c83b50;
+}
+
 @media (min-width: 1200px) {
   #map {
     border-radius: 20px;
