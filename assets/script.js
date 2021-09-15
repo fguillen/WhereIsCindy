@@ -46,12 +46,23 @@ App.Map.setup = function(mapid, draggable = false) {
     }
   ).addTo(App.Map.map);
 
+  var markerIcon = L.icon({
+    iconUrl: "/assets/marker.png",
+    shadowUrl: "/assets/marker_shadow.png",
+    iconSize:     [75, 100], // size of the icon
+    iconAnchor:   [40, 100], // point of the icon which will correspond to marker's location
+    shadowSize:   [90, 60], // size of the shadow
+    shadowAnchor: [3, 59],  // the same for the shadow
+    // popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+  });
+
   App.Map.marker =
     L.marker(
       [52.5050984, 13.4797039],
       {
         draggable: draggable,
-        autoPan: true
+        autoPan: true,
+        icon: markerIcon
       }
     ).addTo(App.Map.map);
 
