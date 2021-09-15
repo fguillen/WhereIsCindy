@@ -31,15 +31,6 @@
     <nav class="navbar navbar-light mb-xl-5">
       <div class="container-xl">
         <h1 class="font-happy">Where is Cindy?</h1>
-
-        <div class="d-flex broadcast-check form-check form-switch align-items-center">
-          <div class="flex-shrink-0">
-            <input class="form-check-input" type="checkbox" id="broadcast-check">
-          </div>
-          <div class="flex-grow-1 ms-3">
-            <label class="form-check-label align-middle" for="broadcast-check">Broadcast position</label>
-          </div>
-        </div>
       </div>
     </nav>
 
@@ -55,27 +46,7 @@
     <script>
       // Setup
       App.PubNub.setup();
-      App.Map.setup("map", true);
-
-      // Start broadcasting
-      document.getElementById("broadcast-check").addEventListener("change", (event) => {
-        if (event.currentTarget.checked) {
-          startBroadcasting();
-        } else {
-          stopBroadcasting();
-        }
-      })
-
-      var interval;
-
-      function startBroadcasting() {
-        App.Geo.getLocation();
-        interval = setInterval(App.Geo.getLocation, 5000);
-      }
-
-      function stopBroadcasting() {
-        clearInterval(interval);
-      }
+      App.Map.setup("map");
     </script>
   </body>
 </html>

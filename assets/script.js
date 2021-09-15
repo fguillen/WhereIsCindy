@@ -17,17 +17,22 @@ App.PubNub.setup = function() {
   });
 
   App.PubNub.api.subscribe({channels: [PUBNUB_CHANNEL]});
-  App.PubNub.api.addListener({message: App.PubNub.debug});
+  App.PubNub.api.addListener({message: App.PubNub.messageReceived});
 }
 
-App.PubNub.debug = function(payload) {
-  console.debug("pubnubDebug", payload);
+App.PubNub.messageReceived = function(payload) {
+  console.debug("App.PubNub.messageReceived", payload);
+  App.Map.updatePosition(payload.message.latitude, payload.message.longitude);
+}
+
+App.PubNub.publishPosition = function(latitude, longitude) {
+  App.PubNub.api.publish({ channel: PUBNUB_CHANNEL, message: { latitude: latitude, longitude: longitude }});
 }
 
 // Maps
 App.Map = new Object();
 
-App.Map.setup = function(mapid) {
+App.Map.setup = function(mapid, draggable = false) {
   App.Map.map = L.map(mapid).setView([52.5050984, 13.4797039], 13);
 
   L.tileLayer(
@@ -45,20 +50,27 @@ App.Map.setup = function(mapid) {
     L.marker(
       [52.5050984, 13.4797039],
       {
-        draggable: true,
+        draggable: draggable,
         autoPan: true
       }
     ).addTo(App.Map.map);
 
-  App.Map.marker.on("dragend", App.Map.markerDragend);
+  if(draggable)
+    App.Map.marker.on("dragend", App.Map.markerDragend);
 }
 
 App.Map.markerDragend = function(payload) {
-  console.log("markerDragend", payload);
-  console.log("position", payload.target.getLatLng());
+  console.log("App.Map.markerDragend", payload);
 
   var coordinates = payload.target.getLatLng();
-  App.Geo.updatePosition(coordinates.lat, coordinates.lng);
+  App.PubNub.publishPosition(coordinates.lat, coordinates.lng);
+}
+
+App.Map.updatePosition = function(latitude, longitude) {
+  console.log("App.Map.updatePosition", latitude, longitude);
+
+  App.Map.marker.setLatLng([latitude, longitude]);
+  App.Map.map.panTo([latitude, longitude]);
 }
 
 // Geolocation
@@ -66,20 +78,12 @@ App.Geo = new Object();
 
 App.Geo.getLocation = function() {
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(App.Geo.updatePositionFromCurrentPosition);
+    navigator.geolocation.getCurrentPosition(App.Geo.publishPosition);
   } else {
     console.error("Geolocation is not supported by this browser.");
   }
 }
 
-App.Geo.updatePositionFromCurrentPosition = function (position) {
-  App.Geo.updatePosition(position.coords.latitude, position.coords.longitude);
-}
-
-App.Geo.updatePosition = function(latitude, longitude) {
-  console.log("updatePosition", latitude, longitude);
-
-  App.Map.marker.setLatLng([latitude, longitude]);
-  App.Map.map.panTo([latitude, longitude]);
-  App.PubNub.api.publish({ channel: PUBNUB_CHANNEL, message: { latitude: latitude, longitude: longitude }});
+App.Geo.publishPosition = function (position) {
+  App.PubNub.publishPosition(position.coords.latitude, position.coords.longitude);
 }
