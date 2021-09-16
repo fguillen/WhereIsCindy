@@ -28,23 +28,27 @@
     <script src="../assets/script.js"></script>
   </head>
 
-  <body>
+  <body class="d-flex flex-colum">
+    <div class="d-flex flex-column flex-grow-1">
 
-    <nav class="navbar navbar-light mb-xl-5">
-      <div class="container-xl">
-        <h1 class="font-happy">Where is Cindy?</h1>
+      <header>
+        <nav class="navbar navbar-light mb-xl-2">
+          <div class="container-xl">
+            <h1 class="font-happy">Where is Cindy?</h1>
+          </div>
+        </nav>
+      </header>
+
+      <div class="container-xl container-map px-0 px-xl-1 d-flex flex-column flex-grow-1 justify-content-center">
+        <div id="map" class="">
+        </div>
       </div>
-    </nav>
 
+      <footer class="text-end mt-auto pe-1">
+        <small>Here is Cindy</small>
+      </footer>
 
-    <div class="container-xl container-map px-0 px-xl-1">
-      <div id="map" class="">
-      </div>
     </div>
-
-    <!-- <footer class="text-center mt-2">
-      <img src="../assets/cindy.png" alt="cindy">
-    </footer> -->
 
     <script>
       // Setup

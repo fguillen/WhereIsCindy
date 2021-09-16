@@ -24,14 +24,8 @@ nav h1 {
   padding-top: 0.2em;
 }
 
-
-
 #map {
-  height:80vh;
-}
-
-footer {
-  height: 10vh;
+  height: 100%;
 }
 
 footer img {
