@@ -1,10 +1,12 @@
-var App = new Object();
-
 // Config
-const PUBNUB_CHANNEL = "where-is-cindy-test";
-const PUBNUB_PUBLISH_KEY = "pub-c-9e005e61-141d-4a00-a3f9-c5c90ae0d686";
-const PUBNUB_SUBSCRIBE_KEY = "sub-c-6aedd952-15aa-11ec-9d3c-1ae560ca2970";
-const MAPBOX_ACCESS_TOKEN = "pk.eyJ1IjoiZDJjbG9uIiwiYSI6ImNrdGtsZzV4NzFtdW4ydmpvZGNxamFjcTgifQ.UptWAKLgJmElEj6maC4bWQ";
+const urlParams = new URLSearchParams(window.location.search);
+const PUBNUB_CHANNEL = urlParams.get("pubnub_channel"); // "where-is-cindy-test";
+const PUBNUB_PUBLISH_KEY = urlParams.get("pubnub_publish_key"); // "pub-c-9e005e61-141d-4a00-a3f9-c5c90ae0d686";
+const PUBNUB_SUBSCRIBE_KEY = urlParams.get("pubnub_subscribe_key"); // "sub-c-6aedd952-15aa-11ec-9d3c-1ae560ca2970";
+const MAPBOX_ACCESS_TOKEN = urlParams.get("mapbox_access_token"); // "pk.eyJ1IjoiZDJjbG9uIiwiYSI6ImNrdGtsZzV4NzFtdW4ydmpvZGNxamFjcTgifQ.UptWAKLgJmElEj6maC4bWQ"; // URL protected
+// example: ?pubnub_channel=where-is-cindy-test&pubnub_publish_key=pub-c-9e005e61-141d-4a00-a3f9-c5c90ae0d686&pubnub_subscribe_key=sub-c-6aedd952-15aa-11ec-9d3c-1ae560ca2970&mapbox_access_token=pk.eyJ1IjoiZDJjbG9uIiwiYSI6ImNrdGtsZzV4NzFtdW4ydmpvZGNxamFjcTgifQ.UptWAKLgJmElEj6maC4bWQ
+
+var App = new Object();
 
 // PubNub
 App.PubNub = new Object();
