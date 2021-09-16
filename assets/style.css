@@ -24,9 +24,7 @@ nav h1 {
   padding-top: 0.2em;
 }
 
-nav .broadcast-check label {
-  font-size: 1.2em;
-}
+
 
 #map {
   height:80vh;
@@ -65,7 +63,25 @@ footer img {
 }
 
 .form-switch .form-check-input {
-  width: 6em;
-  height: 2em;
+  width: 3em;
+  height: 1.2em;
   border-radius: 2em;
+}
+
+@media (min-width: 638px) {
+  .form-switch .form-check-input {
+    width: 6em;
+    height: 2em;
+    border-radius: 2em;
+  }
+}
+
+nav .broadcast-check label {
+  font-size: 1em;
+}
+
+@media (min-width: 638px) {
+  nav .broadcast-check label {
+    font-size: 1.2em;
+  }
 }

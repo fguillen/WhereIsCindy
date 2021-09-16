@@ -34,12 +34,17 @@
       <div class="container-xl">
         <h1 class="font-happy">Where is Cindy?</h1>
 
-        <div class="d-flex broadcast-check form-check form-switch align-items-center">
-          <div class="flex-shrink-0">
-            <input class="form-check-input" type="checkbox" id="broadcast-check">
-          </div>
-          <div class="flex-grow-1 ms-3">
-            <label class="form-check-label align-middle" for="broadcast-check">Broadcast position</label>
+        <div>
+          <div class="d-flex broadcast-check form-check form-switch align-items-center">
+            <div class="flex-shrink-0">
+              <input class="form-check-input" type="checkbox" id="broadcast-check">
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <label class="form-check-label align-middle" for="broadcast-check">Broadcast position</label>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <button type="button" class="btn btn-dark" id="button-share"><i class="bi bi-share"></i></button>
+            </div>
           </div>
         </div>
       </div>
@@ -55,13 +60,11 @@
       <img src="../assets/cindy.png" alt="cindy">
     </footer> -->
 
-    <!-- Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
-
     <script>
       // Setup
       App.PubNub.setup();
       App.Map.setup("map", true);
+      App.Share.setup("button-share", "")
 
       // Start broadcasting
       document.getElementById("broadcast-check").addEventListener("change", (event) => {
@@ -83,5 +86,11 @@
         clearInterval(interval);
       }
     </script>
+
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+
+    <!-- icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
   </body>
 </html>

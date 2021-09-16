@@ -100,3 +100,26 @@ App.Geo.getLocation = function() {
 App.Geo.publishPosition = function (position) {
   App.PubNub.publishPosition(position.coords.latitude, position.coords.longitude);
 }
+
+// Share button
+App.Share = new Object();
+
+App.Share.setup = function(element_id) {
+  document.getElementById(element_id).addEventListener("click", App.Share.share);
+  App.Share.url = window.location.toString().replace("publisher", "subscriber");
+}
+
+App.Share.share = function () {
+  const shareData = {
+    title: "Where is Cindy?",
+    text: "Check the actual location of Cindy",
+    url: App.Share.url
+  }
+
+  try {
+    navigator.share(shareData);
+  } catch(err) {
+    console.error("Error: ", err);
+    window.open(App.Share.url, "_blank").focus();
+  }
+}
