@@ -11,7 +11,11 @@ var App = new Object();
 // PubNub
 App.PubNub = new Object();
 
-App.PubNub.setup = function() {
+App.PubNub.setup = function(noInformationModalId) {
+  if(noInformationModalId) {
+    App.PubNub.noInformationModal = new bootstrap.Modal(document.getElementById(noInformationModalId));
+  }
+
   App.PubNub.channel = PUBNUB_CHANNEL;
   App.PubNub.api = new PubNub({
     publishKey: PUBNUB_PUBLISH_KEY,
@@ -81,7 +85,9 @@ App.PubNub.digestHistory = function(status, response) {
   console.log(response.channels[PUBNUB_CHANNEL])
 
   if(response.channels[PUBNUB_CHANNEL] == null) {
-    console.error("Capture when no events available");
+    console.error("No events available");
+    if(App.PubNub.noInformationModal)
+      App.PubNub.noInformationModal.show();
   } else {
     response.channels[PUBNUB_CHANNEL].forEach(element => {
       console.log("message", element.message);
@@ -93,6 +99,7 @@ App.PubNub.digestHistory = function(status, response) {
 
 App.PubNub.deleteHistory = function() {
   App.PubNub.api.deleteMessages({ channel: PUBNUB_CHANNEL });
+  App.Map.emptyHistory();
 }
 
 // Maps
@@ -125,6 +132,9 @@ App.Map.markerDragend = function(payload) {
 
 App.Map.updatePosition = function(latitude, longitude, time) {
   console.log("App.Map.updatePosition", latitude, longitude, time);
+
+  if(App.PubNub.noInformationModal)
+    App.PubNub.noInformationModal.hide();
 
   App.Map.setActualMarker(latitude, longitude, time);
   App.Map.map.panTo([latitude, longitude]);
@@ -183,7 +193,7 @@ App.Map.setActualMarker = function (latitude, longitude, time) {
 
   App.Map.actualMarker.setLatLng([latitude, longitude]); // .update();
 
-  const lastMarker = App.Map.historyMarkers.pop();
+  const lastMarker = App.Map.historyMarkers[App.Map.historyMarkers.length - 1];
 
   if(lastMarker == null) {
     App.Map.addHistoryMarker(latitude, longitude, time, "small");
@@ -199,7 +209,7 @@ App.Map.setActualMarker = function (latitude, longitude, time) {
 App.Map.historyMarkers = [];
 
 App.Map.addHistoryMarkerIfMinimumDistance = function (latitude, longitude, time, size = "big", draggable = false){
-  const lastMarker = App.Map.historyMarkers.pop();
+  const lastMarker = App.Map.historyMarkers[App.Map.historyMarkers.length - 1];
 
   if(lastMarker == null) {
     App.Map.addHistoryMarker(latitude, longitude, time, size, draggable);
@@ -219,6 +229,16 @@ App.Map.addHistoryMarker = function (latitude, longitude, time, size = "big", dr
   console.log("App.Map.addHistoryMarker", latitude, longitude, time, size, draggable);
   const marker = App.Map.createMarker(latitude, longitude, time, size, draggable)
   App.Map.historyMarkers.push(marker);
+}
+
+App.Map.emptyHistory = function () {
+  console.log("App.Map.emptyHistory");
+
+  App.Map.historyMarkers.forEach(element => {
+    App.Map.map.removeLayer(element);
+  });
+
+  App.Map.historyMarkers.length = 0;
 }
 
 App.Map.createDraggableMarker = function() {
