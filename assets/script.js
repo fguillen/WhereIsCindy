@@ -20,6 +20,8 @@ App.PubNub.setup = function() {
 
   App.PubNub.api.subscribe({channels: [PUBNUB_CHANNEL]});
   App.PubNub.api.addListener({message: App.PubNub.messageReceived});
+
+  App.PubNub.getHistory();
 }
 
 App.PubNub.messageReceived = function(payload) {
@@ -80,13 +82,13 @@ App.PubNub.digestHistory = function(status, response) {
 
   if(response.channels[PUBNUB_CHANNEL] == null) {
     console.error("Capture when no events available");
+  } else {
+    response.channels[PUBNUB_CHANNEL].forEach(element => {
+      console.log("message", element.message);
+      const minimumDistanceMeters = 100;
+      App.Map.addHistoryMarkerIfMinimumDistance(element.message.latitude, element.message.longitude, element.message.time, "small", false, minimumDistanceMeters);
+    });
   }
-
-  response.channels[PUBNUB_CHANNEL].forEach(element => {
-    console.log("message", element.message);
-    const minimumDistanceMeters = 100;
-    App.Map.addMarkerIfMinimumDistance(element.message.latitude, element.message.longitude, element.message.time, "small", false, minimumDistanceMeters);
-  });
 }
 
 App.PubNub.deleteHistory = function() {
@@ -148,29 +150,11 @@ App.Map.markerSmallIcon = L.icon({
   popupAnchor:  [-2, -45] // point from which the popup should open relative to the iconAnchor
 });
 
-App.Map.markers = [];
-
-App.Map.addMarkerIfMinimumDistance = function (latitude, longitude, time, size = "big", draggable = false){
-  const lastMarker = App.Map.markers.pop();
-
-  if(lastMarker == null) {
-    App.Map.addMarker(latitude, longitude, time, size, draggable);
-  } else {
-    const previousMarkerCoordinates = lastMarker.getLatLng();
-    const distanceToPreviousMarker = getDistanceFromLatLonInM(latitude, longitude, previousMarkerCoordinates.lat, previousMarkerCoordinates.lng);
-
-    console.log("addMarkerIfMinimumDistance.distance", distanceToPreviousMarker);
-
-    if(distanceToPreviousMarker > App.Map.MIN_DISTANCE_MARKERS) {
-      App.Map.addMarker(latitude, longitude, time, size, draggable);
-    }
-  }
-}
-
 App.Map.createMarker = function (latitude, longitude, time, size = "big", draggable = false){
   console.log("App.Map.createMarker", latitude, longitude, time, size, draggable);
 
   const markerIcon = size == "big" ? App.Map.markerBigIcon : App.Map.markerSmallIcon;
+  const zIndex = size == "big" ? 1 : 0;
 
   const marker =
     L.marker(
@@ -178,12 +162,13 @@ App.Map.createMarker = function (latitude, longitude, time, size = "big", dragga
       {
         draggable: draggable,
         autoPan: true,
-        icon: markerIcon
+        icon: markerIcon,
+        zIndexOffset: zIndex
       }
     ).addTo(App.Map.map);
 
   const dateFormatted = new Date(time).toLocaleString()
-  marker.bindPopup(dateFormatted).openPopup();
+  marker.bindPopup(dateFormatted);
 
   if(draggable)
     marker.on("dragend", App.Map.markerDragend);
@@ -191,35 +176,54 @@ App.Map.createMarker = function (latitude, longitude, time, size = "big", dragga
   return marker;
 }
 
-App.Map.addMarker = function (latitude, longitude, time, size = "big", draggable = false){
-  console.log("App.Map.addMarker", latitude, longitude, time, size, draggable);
-  const marker = App.Map.createMarker(latitude, longitude, time, size, draggable)
-  App.Map.markers.push(marker);
-}
-
-App.Map.addDraggableMarker = function() {
-  const marker = App.Map.createMarker(52.5050984, 13.4797039, Date.now(), "big", true);
-  App.Map.actualMarker = marker;
-}
-
 App.Map.setActualMarker = function (latitude, longitude, time) {
   if(App.Map.actualMarker == null) {
     App.Map.actualMarker = App.Map.createMarker(latitude, longitude, time, "big");
   }
 
-  App.Map.actualMarker.setLatLng([latitude, longitude]).update();
+  App.Map.actualMarker.setLatLng([latitude, longitude]); // .update();
 
-  const lastMarker = App.Map.markers.pop();
+  const lastMarker = App.Map.historyMarkers.pop();
 
   if(lastMarker == null) {
-    App.Map.addMarker(latitude, longitude, time, "small");
+    App.Map.addHistoryMarker(latitude, longitude, time, "small");
   } else {
     const distanceBetweenMarkers = getDistanceFromLatLonInM(lastMarker.getLatLng().lat, lastMarker.getLatLng().lng, latitude, longitude);
 
     if (distanceBetweenMarkers > App.Map.MIN_DISTANCE_MARKERS) {
-      App.Map.addMarker(latitude, longitude, time, "small");
+      App.Map.addHistoryMarker(latitude, longitude, time, "small");
     }
   }
+}
+
+App.Map.historyMarkers = [];
+
+App.Map.addHistoryMarkerIfMinimumDistance = function (latitude, longitude, time, size = "big", draggable = false){
+  const lastMarker = App.Map.historyMarkers.pop();
+
+  if(lastMarker == null) {
+    App.Map.addHistoryMarker(latitude, longitude, time, size, draggable);
+  } else {
+    const previousMarkerCoordinates = lastMarker.getLatLng();
+    const distanceToPreviousMarker = getDistanceFromLatLonInM(latitude, longitude, previousMarkerCoordinates.lat, previousMarkerCoordinates.lng);
+
+    console.log("addMarkerIfMinimumDistance.distance", distanceToPreviousMarker);
+
+    if(distanceToPreviousMarker > App.Map.MIN_DISTANCE_MARKERS) {
+      App.Map.addHistoryMarker(latitude, longitude, time, size, draggable);
+    }
+  }
+}
+
+App.Map.addHistoryMarker = function (latitude, longitude, time, size = "big", draggable = false){
+  console.log("App.Map.addHistoryMarker", latitude, longitude, time, size, draggable);
+  const marker = App.Map.createMarker(latitude, longitude, time, size, draggable)
+  App.Map.historyMarkers.push(marker);
+}
+
+App.Map.createDraggableMarker = function() {
+  const marker = App.Map.createMarker(52.5050984, 13.4797039, Date.now(), "big", true);
+  App.Map.actualMarker = marker;
 }
 
 // Geolocation
