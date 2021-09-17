@@ -24,17 +24,79 @@ App.PubNub.setup = function() {
 
 App.PubNub.messageReceived = function(payload) {
   console.debug("App.PubNub.messageReceived", payload);
-  App.Map.updatePosition(payload.message.latitude, payload.message.longitude);
+  App.Map.updatePosition(payload.message.latitude, payload.message.longitude, payload.message.time);
 }
 
 App.PubNub.publishPosition = function(latitude, longitude) {
-  App.PubNub.api.publish({ channel: PUBNUB_CHANNEL, message: { latitude: latitude, longitude: longitude }});
+  const message = {
+    latitude: latitude,
+    longitude: longitude,
+    time: Date.now()
+  }
+
+  App.PubNub.api.publish({ channel: PUBNUB_CHANNEL, message: message});
+}
+
+App.PubNub.getHistory = function() {
+  const hour = 1000 * 60 * 60;
+  const now = Date.now();
+  const oneHourAgo = Date.now() - hour;
+
+  console.log("now", now);
+  console.log("oneHourAgo", oneHourAgo);
+
+  try {
+    const messages =
+      App.PubNub.api.fetchMessages(
+        {
+          channels: [PUBNUB_CHANNEL],
+          start: (now * 10000).toString(), // building timetoken https://www.pubnub.com/docs/sdks/javascript/api-reference/misc#time
+          end: (oneHourAgo * 10000).toString(), // building timetoken https://www.pubnub.com/docs/sdks/javascript/api-reference/misc#time
+          count: 25
+
+          // channels: ["ch1", "ch2", "ch3"],
+          // start: "1631876025383",
+          // end: "1631872425383",
+          // count: 25,
+
+          // channels: ["ch1", "ch2", "ch3"],
+          // start: "15343325214676133",
+          // end: "15343325004275466",
+          // count: 25,
+        },
+        App.PubNub.digestHistory
+      );
+
+    return messages;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+App.PubNub.digestHistory = function(status, response) {
+  console.log("digestHistory", status, response);
+
+  console.log(response.channels[PUBNUB_CHANNEL])
+
+  if(response.channels[PUBNUB_CHANNEL] == null) {
+    console.error("Capture when no events available");
+  }
+
+  response.channels[PUBNUB_CHANNEL].forEach(element => {
+    console.log("message", element.message);
+    const minimumDistanceMeters = 100;
+    App.Map.addMarkerIfMinimumDistance(element.message.latitude, element.message.longitude, element.message.time, "small", false, minimumDistanceMeters);
+  });
+}
+
+App.PubNub.deleteHistory = function() {
+  App.PubNub.api.deleteMessages({ channel: PUBNUB_CHANNEL });
 }
 
 // Maps
 App.Map = new Object();
 
-App.Map.setup = function(mapid, draggable = false) {
+App.Map.setup = function(mapid) {
   App.Map.map = L.map(mapid).setView([52.5050984, 13.4797039], 13);
 
   L.tileLayer(
@@ -48,28 +110,8 @@ App.Map.setup = function(mapid, draggable = false) {
     }
   ).addTo(App.Map.map);
 
-  var markerIcon = L.icon({
-    iconUrl: "../assets/marker.png",
-    shadowUrl: "../assets/marker_shadow.png",
-    iconSize:     [75, 100], // size of the icon
-    iconAnchor:   [40, 100], // point of the icon which will correspond to marker's location
-    shadowSize:   [81, 87], // size of the shadow
-    shadowAnchor: [7, 82],  // the same for the shadow
-    // popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
-  });
-
-  App.Map.marker =
-    L.marker(
-      [52.5050984, 13.4797039],
-      {
-        draggable: draggable,
-        autoPan: true,
-        icon: markerIcon
-      }
-    ).addTo(App.Map.map);
-
-  if(draggable)
-    App.Map.marker.on("dragend", App.Map.markerDragend);
+  App.Map.MIN_DISTANCE_MARKERS = 250; // in meters
+  App.Map.actualMarker = null;
 }
 
 App.Map.markerDragend = function(payload) {
@@ -79,11 +121,105 @@ App.Map.markerDragend = function(payload) {
   App.PubNub.publishPosition(coordinates.lat, coordinates.lng);
 }
 
-App.Map.updatePosition = function(latitude, longitude) {
-  console.log("App.Map.updatePosition", latitude, longitude);
+App.Map.updatePosition = function(latitude, longitude, time) {
+  console.log("App.Map.updatePosition", latitude, longitude, time);
 
-  App.Map.marker.setLatLng([latitude, longitude]);
+  App.Map.setActualMarker(latitude, longitude, time);
   App.Map.map.panTo([latitude, longitude]);
+}
+
+App.Map.markerBigIcon = L.icon({
+  iconUrl: "../assets/marker.png",
+  shadowUrl: "../assets/marker_shadow.png",
+  iconSize:     [75, 100], // size of the icon
+  iconAnchor:   [40, 100], // point of the icon which will correspond to marker's location
+  shadowSize:   [81, 87], // size of the shadow
+  shadowAnchor: [7, 82],  // the same for the shadow
+  popupAnchor:  [-3, -90] // point from which the popup should open relative to the iconAnchor
+});
+
+App.Map.markerSmallIcon = L.icon({
+  iconUrl: "../assets/marker.png",
+  shadowUrl: "../assets/marker_shadow.png",
+  iconSize:     [37, 50], // size of the icon
+  iconAnchor:   [20, 50], // point of the icon which will correspond to marker's location
+  shadowSize:   [40, 43], // size of the shadow
+  shadowAnchor: [4, 41],  // the same for the shadow
+  popupAnchor:  [-2, -45] // point from which the popup should open relative to the iconAnchor
+});
+
+App.Map.markers = [];
+
+App.Map.addMarkerIfMinimumDistance = function (latitude, longitude, time, size = "big", draggable = false){
+  const lastMarker = App.Map.markers.pop();
+
+  if(lastMarker == null) {
+    App.Map.addMarker(latitude, longitude, time, size, draggable);
+  } else {
+    const previousMarkerCoordinates = lastMarker.getLatLng();
+    const distanceToPreviousMarker = getDistanceFromLatLonInM(latitude, longitude, previousMarkerCoordinates.lat, previousMarkerCoordinates.lng);
+
+    console.log("addMarkerIfMinimumDistance.distance", distanceToPreviousMarker);
+
+    if(distanceToPreviousMarker > App.Map.MIN_DISTANCE_MARKERS) {
+      App.Map.addMarker(latitude, longitude, time, size, draggable);
+    }
+  }
+}
+
+App.Map.createMarker = function (latitude, longitude, time, size = "big", draggable = false){
+  console.log("App.Map.createMarker", latitude, longitude, time, size, draggable);
+
+  const markerIcon = size == "big" ? App.Map.markerBigIcon : App.Map.markerSmallIcon;
+
+  const marker =
+    L.marker(
+      [latitude, longitude],
+      {
+        draggable: draggable,
+        autoPan: true,
+        icon: markerIcon
+      }
+    ).addTo(App.Map.map);
+
+  const dateFormatted = new Date(time).toLocaleString()
+  marker.bindPopup(dateFormatted).openPopup();
+
+  if(draggable)
+    marker.on("dragend", App.Map.markerDragend);
+
+  return marker;
+}
+
+App.Map.addMarker = function (latitude, longitude, time, size = "big", draggable = false){
+  console.log("App.Map.addMarker", latitude, longitude, time, size, draggable);
+  const marker = App.Map.createMarker(latitude, longitude, time, size, draggable)
+  App.Map.markers.push(marker);
+}
+
+App.Map.addDraggableMarker = function() {
+  const marker = App.Map.createMarker(52.5050984, 13.4797039, Date.now(), "big", true);
+  App.Map.actualMarker = marker;
+}
+
+App.Map.setActualMarker = function (latitude, longitude, time) {
+  if(App.Map.actualMarker == null) {
+    App.Map.actualMarker = App.Map.createMarker(latitude, longitude, time, "big");
+  }
+
+  App.Map.actualMarker.setLatLng([latitude, longitude]).update();
+
+  const lastMarker = App.Map.markers.pop();
+
+  if(lastMarker == null) {
+    App.Map.addMarker(latitude, longitude, time, "small");
+  } else {
+    const distanceBetweenMarkers = getDistanceFromLatLonInM(lastMarker.getLatLng().lat, lastMarker.getLatLng().lng, latitude, longitude);
+
+    if (distanceBetweenMarkers > App.Map.MIN_DISTANCE_MARKERS) {
+      App.Map.addMarker(latitude, longitude, time, "small");
+    }
+  }
 }
 
 // Geolocation

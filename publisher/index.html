@@ -25,6 +25,7 @@
 
     <!-- App -->
     <link rel="stylesheet" href="../assets/style.css">
+    <script src="../assets/geo_distance.js"></script>
     <script src="../assets/script.js"></script>
   </head>
 
@@ -67,8 +68,9 @@
     <script>
       // Setup
       App.PubNub.setup();
-      App.Map.setup("map", true);
-      App.Share.setup("button-share", "")
+      App.Map.setup("map");
+      App.Share.setup("button-share");
+      App.Map.addDraggableMarker();
 
       // Start broadcasting
       document.getElementById("broadcast-check").addEventListener("change", (event) => {

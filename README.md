@@ -20,6 +20,8 @@ Create an account in PubNub and get the Publisher and Subscriber key
 
 - PubNub: https://www.pubnub.com/
 
+Activate _STORAGE & PLAYBACK_ and _Enable Delete-From-History_.
+
 Create an account in MapBox and get the API key:
 
 - MapBox: https://www.mapbox.com/
